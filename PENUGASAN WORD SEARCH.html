@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cari Kata: Cetak Biru Generasi Solutif</title>
+<style>
+:root{--paper:#0e3a6b;--paper2:#0a2d54;--line:rgba(255,255,255,.14);--ink:#eaf3ff;--mute:#9fbfe4;--hl:#ffd23f;--hlink:#0a2d54;--sel:#5fd0ff}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Trebuchet MS",Verdana,sans-serif;
+background-color:var(--paper);
+background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+background-size:28px 28px}
+main{max-width:1000px;margin:0 auto;padding:20px 16px 40px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:16px}
+h1{margin:0;font-size:clamp(1.4rem,4vw,2rem);font-weight:700;letter-spacing:.01em}
+.sub{margin:4px 0 0;color:var(--mute);font-size:.95rem}
+.bar{display:flex;gap:10px;align-items:center}
+.stat{background:var(--paper2);border:1px solid var(--mute);padding:6px 12px;border-radius:4px;font-variant-numeric:tabular-nums;min-width:72px;text-align:center}
+button{font:inherit;color:var(--ink);background:transparent;border:1px solid var(--ink);padding:7px 14px;border-radius:4px;cursor:pointer}
+button:hover{background:var(--ink);color:var(--paper2)}
+button:focus-visible,.c:focus-visible{outline:3px solid var(--hl);outline-offset:2px}
+.play{display:grid;grid-template-columns:minmax(0,560px) 1fr;gap:22px;align-items:start}
+#grid{display:grid;width:100%;aspect-ratio:1;background:var(--paper2);border:2px solid var(--ink);touch-action:none;user-select:none;-webkit-user-select:none}
+.c{display:flex;align-items:center;justify-content:center;font-family:"Courier New",monospace;font-weight:700;font-size:clamp(.62rem,2.5vw,1.05rem);border:1px solid rgba(255,255,255,.07);cursor:pointer}
+.c.sel{background:var(--sel);color:var(--hlink)}
+.c.f{background:var(--hl);color:var(--hlink)}
+.c.f.f1{background:#ff9f6b}.c.f.f2{background:#8ee3a0}.c.f.f3{background:#ffd23f}
+.c.sel.f{background:var(--sel)}
+.c.hint{animation:blink .5s 4}
+@keyframes blink{50%{background:var(--hl);color:var(--hlink)}}
+aside h2{margin:0 0 8px;font-size:1.05rem}
+#list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+#list li{padding:6px 9px;border:1px dashed var(--mute);border-radius:4px;font-size:.9rem;letter-spacing:.04em}
+#list li.done{border:1px solid var(--hl);background:rgba(255,210,63,.14);text-decoration:line-through;text-decoration-color:var(--hl)}
+#info{margin-top:14px;min-height:92px;padding:12px;background:var(--paper2);border-left:4px solid var(--hl);border-radius:2px;font-size:.95rem;line-height:1.5}
+#info b{color:var(--hl)}
+#win{display:none;margin-top:14px;padding:14px;background:var(--hl);color:var(--hlink);border-radius:4px;line-height:1.5}
+#win .btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+#win button{color:var(--hlink);border-color:var(--hlink);font-weight:700}
+#win button.main{background:var(--hlink);color:var(--ink)}
+#win button:disabled{opacity:.5;cursor:default}
+#win small{display:block;margin-top:8px;font-weight:400}
+#gate{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(6,30,58,.96)}
+#gate[hidden]{display:none}
+#gate .box{width:100%;max-width:420px;background:var(--paper);border:2px solid var(--ink);border-radius:6px;padding:24px}
+#gate h2{margin:0 0 6px;font-size:1.4rem}
+#gate p{margin:0 0 16px;color:var(--mute);font-size:.95rem;line-height:1.5}
+#gate label{display:block;margin:0 0 12px;font-size:.9rem;color:var(--mute)}
+#gate input{display:block;width:100%;margin-top:4px;font:inherit;font-size:1rem;padding:10px;border:1px solid var(--mute);background:var(--paper2);color:var(--ink);border-radius:4px}
+#gate button{width:100%;margin-top:6px;padding:11px;background:var(--hl);color:var(--hlink);border-color:var(--hl);font-weight:700}
+#gate button:hover{background:var(--ink)}
+#err{min-height:1.2em;margin:0 0 8px;color:var(--hl);font-size:.9rem}
+#who{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.9rem}
+@media(max-width:760px){.play{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.c.hint{animation:none;background:var(--hl);color:var(--hlink)}}
+</style>
+</head>
+<body>
+<div id="gate">
+  <div class="box" id="gateForm">
+    <h2>Cari Kata: Cetak Biru Generasi Solutif</h2>
+    <p>Isi data dirimu dulu. Hasil permainan akan dicatat atas nama ini.</p>
+    <label>Nama lengkap<input id="nama" maxlength="60" autocomplete="name"></label>
+    <label>Kelas<input id="kelas" maxlength="20" placeholder="contoh: XI-2"></label>
+    <div id="err" role="alert"></div>
+    <button type="button" id="startBtn">Mulai bermain</button>
+  </div>
+</div>
+<main>
+<header>
+  <div>
+    <h1>Cari Kata: Cetak Biru Generasi Solutif</h1>
+    <p class="sub">Geser dari huruf pertama ke huruf terakhir. Kata bisa mendatar, menurun, atau miring, ke segala arah.</p>
+  </div>
+  <div class="bar">
+    <div class="stat" id="who"></div>
+    <div class="stat" id="count">0/22</div>
+    <div class="stat" id="timer">00:00</div>
+    <button id="hintBtn">Petunjuk</button>
+    <button id="subBtn">Kumpulkan</button>
+    <button id="newBtn">Permainan baru</button>
+    <button id="chBtn">Ganti pemain</button>
+  </div>
+</header>
+<div class="play">
+  <div id="grid" role="grid" aria-label="Papan cari kata"></div>
+  <aside>
+    <h2 id="ttl">Temukan istilah</h2>
+    <ul id="list"></ul>
+    <div id="info">Setiap istilah yang ditemukan akan muncul beserta artinya di sini.</div>
+    <div id="win" role="status"></div>
+  </aside>
+</div>
+</main>
+<script>
+// === TEMPEL URL WEB APP GOOGLE APPS SCRIPT DI SINI (lihat petunjuk) ===
+const SHEET_URL="https://script.google.com/macros/s/AKfycbw1XFCj_8abtY5R5ze-qZ4t_iHU_PYfc11hFeLX5nSYdXFtx9PijrPxiL8Bs64y8EoZ/exec";
+const N=18;
+const WORDS=[
+["NONDEROGABLE","Hak mutlak yang tidak boleh dikurangi dalam keadaan apa pun, misalnya hak untuk hidup."],
+["DEROGABLE","Hak bersyarat yang boleh dibatasi negara demi ketertiban umum, misalnya kebebasan berpendapat."],
+["PERUNDUNGAN","Tindakan menyakiti orang lain secara berulang, baik lewat kata-kata maupun fisik."],
+["INTOLERANSI","Sikap tidak mau menghargai perbedaan yang memicu gesekan sosial."],
+["EKSKLUSI","Penyingkiran individu atau komunitas dari sistem sehingga tidak berdaya untuk berpartisipasi (eksklusi sosial)."],
+["EMPATI","Kemampuan merasakan posisi orang lain."],
+["SIMPATI","Rasa peduli terhadap penderitaan orang lain; memperlakukan orang lain sebagai sesama manusia."],
+["LEGAWA","Berjiwa besar saat gagasan dikritik atau direvisi."],
+["BODYSHAMING","Bentuk perundungan yang menyerang tubuh korban, yaitu menyerang otoritas korban atas tubuhnya sendiri."],
+["RANUMKAN","Kerangka kerja Rancang, Bangun, dan Menerapkan untuk mengubah gagasan menjadi aksi."],
+["MARTABAT","Harga diri dan kehormatan manusia (human dignity) yang wajib dilindungi."],
+["SOLUTIF","Sikap mencari jalan keluar, tidak berhenti pada keluhan."],
+["BULLYING","Istilah asing untuk perundungan."],
+["HUMANDIGNITY","Istilah asing untuk martabat kemanusiaan: harga diri dasar manusia yang dilanggar oleh perundungan."],
+["INDIVIDUALISME","Paham yang mengutamakan kepentingan pribadi di atas kepentingan bersama; menguatnya paham ini melemahkan rasa kebersamaan."],
+["LIBERALISME","Liberalisme pasar: paham yang menyerahkan kehidupan ekonomi pada mekanisme pasar bebas dengan campur tangan negara seminimal mungkin."],
+["RADIKALISME","Radikalisme-fundamentalisme \"agama\": sikap ekstrem yang memaksakan tafsir agama tertentu dan mengabaikan kesepakatan kebangsaan."],
+["KOSMOPOLITANISME","Pandangan yang menempatkan manusia sebagai warga dunia sehingga identitas kebangsaan dianggap kurang penting."],
+["TRANSNASIONAL","Ideologi transnasional: ideologi yang melintasi batas negara dan dapat bersaing dengan ideologi nasional."],
+["HUKUMMODERN","Dominasi sistem hukum modern: pengaruh kuat sistem hukum global yang dapat menggeser hukum dan nilai lokal."],
+["RINGKAS","Salah satu dari 5R budaya industri: tidak berlebihan dan efisien."],
+["MENSCHLICHKEIT","Istilah Jerman untuk perikemanusiaan: hasil pertumbuhan rohani dan budaya manusia ke taraf yang lebih tinggi (Presiden Sukarno, 1958)."]
+];
+const DIRS=[[0,1],[1,0],[1,1],[-1,1],[0,-1],[-1,0],[-1,-1],[1,-1]];
+const gridEl=document.getElementById('grid'),listEl=document.getElementById('list'),
+infoEl=document.getElementById('info'),winEl=document.getElementById('win'),
+countEl=document.getElementById('count'),timerEl=document.getElementById('timer');
+let board,placed,found,cells,t0,tick,start=null,selCells=[],ended,hints=0,sent=false,running=false,elapsed=0;
+
+function build(){
+  let ok=false;
+  while(!ok){
+    board=Array.from({length:N},()=>Array(N).fill(''));placed=[];ok=true;
+    const order=[...WORDS].sort((a,b)=>b[0].length-a[0].length);
+    for(const [w] of order){
+      let done=false;
+      for(let k=0;k<400&&!done;k++){
+        const d=DIRS[Math.floor(Math.random()*8)],r=Math.floor(Math.random()*N),c=Math.floor(Math.random()*N);
+        const er=r+d[0]*(w.length-1),ec=c+d[1]*(w.length-1);
+        if(er<0||er>=N||ec<0||ec>=N)continue;
+        let fit=true;
+        for(let i=0;i<w.length;i++){const ch=board[r+d[0]*i][c+d[1]*i];if(ch&&ch!==w[i]){fit=false;break}}
+        if(!fit)continue;
+        for(let i=0;i<w.length;i++)board[r+d[0]*i][c+d[1]*i]=w[i];
+        placed.push({w,r,c,d});done=true;
+      }
+      if(!done){ok=false;break}
+    }
+  }
+  const abc="ABCDEFGHIJKLMNOPRSTUW";
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(!board[r][c])board[r][c]=abc[Math.floor(Math.random()*abc.length)];
+}
+
+function render(){
+  gridEl.innerHTML='';cells=[];gridEl.style.gridTemplateColumns='repeat('+N+',1fr)';document.getElementById('ttl').textContent='Temukan '+WORDS.length+' istilah';
+  for(let r=0;r<N;r++){cells.push([]);for(let c=0;c<N;c++){
+    const e=document.createElement('div');e.className='c';e.textContent=board[r][c];
+    e.dataset.r=r;e.dataset.c=c;e.setAttribute('role','gridcell');gridEl.appendChild(e);cells[r].push(e);
+  }}
+  listEl.innerHTML='';
+  WORDS.forEach(([w])=>{const li=document.createElement('li');li.id='w-'+w;li.textContent=w;listEl.appendChild(li)});
+  found=new Set();ended=false;winEl.style.display='none';
+  infoEl.textContent='Setiap istilah yang ditemukan akan muncul beserta artinya di sini.';
+  updateCount();
+  clearInterval(tick);running=false;hints=0;sent=false;elapsed=0;document.getElementById('subBtn').disabled=false;timerEl.textContent='00:00';
+}
+function fmt(sec){return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0')}
+function startTimer(){
+  running=true;t0=Date.now();
+  tick=setInterval(()=>{elapsed=Math.floor((Date.now()-t0)/1000);timerEl.textContent=fmt(elapsed)},500);
+}
+function panel(msg,partial){
+  winEl.innerHTML=msg+'<div class="btns"><button class="main" id="doSend">'+(partial?'Ya, kumpulkan':'Kumpulkan hasil')+'</button>'+(partial?'<button id="cancelSend">Lanjut bermain</button>':'')+'</div><small id="st"></small>';
+  winEl.style.display='block';
+  document.getElementById('doSend').addEventListener('click',send);
+  const c=document.getElementById('cancelSend');
+  if(c)c.addEventListener('click',()=>{winEl.style.display='none'});
+}
+function send(){
+  const st=document.getElementById('st'),btn=document.getElementById('doSend');
+  if(sent)return;
+  ended=true;clearInterval(tick);
+  if(running){elapsed=Math.floor((Date.now()-t0)/1000);timerEl.textContent=fmt(elapsed)}
+  if(!SHEET_URL){st.textContent='Mode uji: data belum dikirim karena SHEET_URL masih kosong.';return}
+  const data={nama:document.getElementById('nama').value.trim(),kelas:document.getElementById('kelas').value.trim(),
+    detik:elapsed,durasi:fmt(elapsed),ditemukan:found.size+'/'+WORDS.length,petunjuk:hints};
+  btn.disabled=true;st.textContent='Mengirim hasil ke spreadsheet...';
+  fetch(SHEET_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(data)})
+    .then(()=>{sent=true;st.textContent='Hasil sudah dikumpulkan. Terima kasih!';document.getElementById('subBtn').disabled=true;
+      const cb=document.getElementById('cancelSend');if(cb)cb.remove();})
+    .catch(err=>{btn.disabled=false;st.textContent='Gagal mengirim ('+(err&&err.message?err.message:'tidak diketahui')+'). Pastikan ada internet dan file dibuka langsung di browser (Chrome), bukan di pratinjau, lalu tekan tombol lagi.'});
+}
+document.getElementById('subBtn').addEventListener('click',()=>{
+  if(!running){infoEl.textContent='Mainkan dulu sebelum mengumpulkan hasil.';return}
+  if(sent)return;
+  if(found.size===WORDS.length)panel('Semua istilah ditemukan dalam '+fmt(elapsed)+'.',false);
+  else panel('Kamu baru menemukan '+found.size+' dari '+WORDS.length+' istilah. Kumpulkan sekarang?',true);
+});
+function updateCount(){countEl.textContent=found.size+'/'+WORDS.length}
+
+function cellAt(x,y){const e=document.elementFromPoint(x,y);return e&&e.classList&&e.classList.contains('c')?e:null}
+function lineTo(a,b){
+  const dr=b.r-a.r,dc=b.c-a.c;
+  if(!(dr===0||dc===0||Math.abs(dr)===Math.abs(dc)))return null;
+  const n=Math.max(Math.abs(dr),Math.abs(dc)),sr=Math.sign(dr),sc=Math.sign(dc),out=[];
+  for(let i=0;i<=n;i++)out.push([a.r+sr*i,a.c+sc*i]);
+  return out;
+}
+function paint(line){
+  selCells.forEach(([r,c])=>cells[r][c].classList.remove('sel'));
+  selCells=line||[];
+  selCells.forEach(([r,c])=>cells[r][c].classList.add('sel'));
+}
+gridEl.addEventListener('pointerdown',e=>{
+  if(ended)return;
+  const nm=document.getElementById('nama');
+  if(!nm.value.trim()){infoEl.textContent='Isi nama dulu sebelum bermain.';nm.focus();return}
+  const el=cellAt(e.clientX,e.clientY);if(!el)return;
+  gridEl.setPointerCapture(e.pointerId);
+  if(!running)startTimer();
+  start={r:+el.dataset.r,c:+el.dataset.c};paint([[start.r,start.c]]);
+});
+gridEl.addEventListener('pointermove',e=>{
+  if(!start)return;const el=cellAt(e.clientX,e.clientY);if(!el)return;
+  const line=lineTo(start,{r:+el.dataset.r,c:+el.dataset.c});if(line)paint(line);
+});
+function finish(){
+  if(!start)return;
+  const str=selCells.map(([r,c])=>board[r][c]).join(''),rev=[...str].reverse().join('');
+  const hit=WORDS.find(([w])=>!found.has(w)&&(w===str||w===rev));
+  if(hit&&str.length>1){
+    found.add(hit[0]);
+    const k=found.size%3;
+    selCells.forEach(([r,c])=>cells[r][c].classList.add('f','f'+k));
+    document.getElementById('w-'+hit[0]).classList.add('done');
+    infoEl.innerHTML='<b>'+hit[0]+'</b><br>'+hit[1];
+    updateCount();
+    if(found.size===WORDS.length){
+      ended=true;clearInterval(tick);
+      elapsed=Math.floor((Date.now()-t0)/1000);timerEl.textContent=fmt(elapsed);
+      panel('Semua istilah ditemukan dalam '+timerEl.textContent+'. Tekan tombol di bawah untuk mengirim hasilmu ke guru.',false);
+    }
+  }
+  paint(null);start=null;
+}
+gridEl.addEventListener('pointerup',finish);
+gridEl.addEventListener('pointercancel',()=>{paint(null);start=null});
+
+document.getElementById('hintBtn').addEventListener('click',()=>{
+  hints++;const left=placed.filter(p=>!found.has(p.w));if(!left.length)return;
+  const p=left[Math.floor(Math.random()*left.length)],el=cells[p.r][p.c];
+  el.classList.remove('hint');void el.offsetWidth;el.classList.add('hint');
+  infoEl.innerHTML='Petunjuk: ada kata yang diawali huruf <b>'+p.w[0]+'</b> (' +p.w.length+' huruf) di kotak yang berkedip.';
+});
+const gate=document.getElementById('gate'),whoEl=document.getElementById('who');
+function startGame(){
+  const n=document.getElementById('nama').value.trim(),k=document.getElementById('kelas').value.trim();
+  if(!n||!k){document.getElementById('err').textContent='Nama dan kelas wajib diisi.';return}
+  whoEl.textContent=n+' · '+k;whoEl.title=n+' · '+k;
+  gate.hidden=true;
+}
+document.getElementById('startBtn').addEventListener('click',startGame);
+['nama','kelas'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')startGame()}));
+document.getElementById('chBtn').addEventListener('click',()=>{
+  build();render();
+  document.getElementById('nama').value='';document.getElementById('kelas').value='';
+  document.getElementById('err').textContent='';gate.hidden=false;
+  document.getElementById('nama').focus();
+});
+document.getElementById('newBtn').addEventListener('click',()=>{build();render()});
+build();render();
+</script>
+</body>
+</html>
